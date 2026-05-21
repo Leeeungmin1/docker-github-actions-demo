@@ -11,7 +11,7 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    # 1. Container Registry(ACR) 로그인 (이 단계는 그대로 유지)
+    # 1. Azure Container Registry(ACR) 로그인
     - name: Azure Container Registry Login
       uses: azure/docker-login@v1
       with:
@@ -29,6 +29,6 @@ jobs:
     - name: Deploy to Azure Web App
       uses: azure/webapps-deploy@v3
       with:
-        app-name: 'st714webapp' # ⚠️ 본인의 실제 웹앱 이름 확인
-        publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }} # 💡 변경된 부분
+        app-name: 'st714webapp' # ⚠️ 만약 생성한 웹앱 이름이 다르다면 수정하세요.
+        publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
         images: '${{ secrets.REGISTRY_USERNAME }}.azurecr.io/test-web-app:${{ github.sha }}'
