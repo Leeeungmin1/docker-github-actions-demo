@@ -1,0 +1,34 @@
+name: Azure CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    # 1. Container Registry(ACR) 로그인 (이 단계는 그대로 유지)
+    - name: Azure Container Registry Login
+      uses: azure/docker-login@v1
+      with:
+        login-server: ${{ secrets.REGISTRY_USERNAME }}.azurecr.io
+        username: ${{ secrets.REGISTRY_USERNAME }}
+        password: ${{ secrets.REGISTRY_PASSWORD }}
+
+    # 2. Docker 이미지 빌드 및 ACR 푸시
+    - name: Build and Push Docker Image to ACR
+      run: |
+        docker build -t ${{ secrets.REGISTRY_USERNAME }}.azurecr.io/test-web-app:${{ github.sha }} .
+        docker push ${{ secrets.REGISTRY_USERNAME }}.azurecr.io/test-web-app:${{ github.sha }}
+
+    # 3. 게시 프로필(Publish Profile)을 사용하여 Azure App Service에 배포
+    - name: Deploy to Azure Web App
+      uses: azure/webapps-deploy@v3
+      with:
+        app-name: 'st714webapp' # ⚠️ 본인의 실제 웹앱 이름 확인
+        publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }} # 💡 변경된 부분
+        images: '${{ secrets.REGISTRY_USERNAME }}.azurecr.io/test-web-app:${{ github.sha }}'
